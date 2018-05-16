@@ -32,17 +32,18 @@ Phis = [np.asmatrix(scipy.linalg.circulant(p)) for p in p_light]
 # Solve convex relaxation
 M = Semidef(n)
 obj = trace(M)
-expr = sum([Phi.H*M*Phi for Phi in Phis])
+I = sum([Phi.H*M*Phi for Phi in Phis])
 # expr = sum([Preal.T*M*Preal + Pimag.T*M*Pimag for Preal, Pimag in Phis_split])
-cons = [expr[S == 1] >= I_high, expr[S == 0] <= I_low]
+cons = [I[S == 1] >= I_high, I[S == 0] <= I_low]
 prob = Problem(Minimize(obj), cons)
 prob.solve()
+I_sol = np.real(I.value)
 
 # Display resulting mask
 plt.imshow(S, cmap = "Greys", interpolation = "nearest")
-plt.title("Desired Mask")
+plt.title("Desired Substrate")
 plt.show()
 
-plt.imshow(M.value, cmap = "Greys", interpolation = "nearest")
-plt.title("Solution Mask")
+plt.imshow(I_sol, cmap = "Greys", interpolation = "nearest")
+plt.title("Solution Substrate")
 plt.show()
