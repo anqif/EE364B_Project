@@ -24,11 +24,14 @@ n = np.prod(S.shape)
 S_vec = S.flatten()   # Flatten into vector
 
 # Generate light wavelengths
+z = np.arange(n)
 p_light = []
 for i in range(m):
 	data = np.random.randn(n,2)
 	comp = np.apply_along_axis(lambda args: [complex(*args)], 1, data)
-	p_light += [comp]
+	bessel = scipy.special.jv(1, z).reshape((n,1))
+	# p_light += [comp]
+	p_light += [comp + bessel]
 Phis = [np.asmatrix(scipy.linalg.circulant(p)) for p in p_light]
 # Phis_split = [(np.real(Phi), np.imag(Phi)) for Phi in Phis]
 
@@ -41,8 +44,13 @@ cons = [I[S_vec == 1] >= I_high, I[S_vec == 0] <= I_low]
 prob = Problem(Minimize(obj), cons)
 prob.solve("MOSEK")
 
+# Real mask must be binary
+M_bin = np.sign(M.value)
+I_bin = sum([np.diag(Phi.H.dot(M_bin).dot(Phi)) for Phi in Phis])
+
 # Retrieve solution
-I_sol = np.real(I.value)
+# I_sol = np.real(I.value)
+I_sol = np.real(I_bin)
 S_sol = np.reshape(I_sol, (k,l))   # Reshape into 2-D image
 print("MSE in Substrate: {}".format(np.linalg.norm(S - S_sol)**2/n))
 
