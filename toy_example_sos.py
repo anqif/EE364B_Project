@@ -63,7 +63,7 @@ I = sum([intensity(z, Z, Phi) for Phi in Phis])
 obj = sum(square(neg(I[S_vec == 1] - I_high))) + sum(square(pos(I[S_vec == 0] - I_low)))
 
 #obj = I_high - I_low
-cons = [diag(Z) == 1, H_mat >> 0, I_high >= 0, I_low >= 0, I_high >= I_low]
+cons = [diag(Z) == 1, H_mat >> 0, I_low >= 0, I_high >= I_low]
 prob = Problem(Minimize(obj), cons)
 prob.solve("MOSEK")
 print("Status: {}".format(prob.status))
