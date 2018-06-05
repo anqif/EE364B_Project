@@ -36,10 +36,11 @@ def intensity(z, Z, Phi):
         return (term1 + term2 + term3)/4
 
 # Solve convex relaxation
-z = Variable((n,1))
-Z = Variable((n,n), symmetric = True)   # Z = zz^T
+z = Variable(n)
+Z = Symmetric(n)   # Z = zz^T
 I_high = Variable()
 I_low = Variable()
+
 w_high = 1.0
 
 H_mat = bmat([[np.array([[1]]), z.T], [z, Z]])   # H = [[1, z^T], [z, Z]]
