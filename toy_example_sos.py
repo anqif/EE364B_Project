@@ -5,29 +5,9 @@ from cvxpy import *
 
 np.random.seed(1)
 p_num = 5
+f_name = "data/circuit_array.txt"
 # S = np.random.randint(0, 2, size = (5,5))
-'''
-S = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
-'''
-S = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 1, 1, 1, 1, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+S = np.loadtxt(open(f_name, "rb"), delimiter=",")
 
 k,l = S.shape
 n = np.prod(S.shape)
@@ -56,13 +36,13 @@ z = Variable((n,1))
 Z = Variable((n,n), symmetric = True)   # Z = zz^T
 I_high = Variable()
 I_low = Variable()
+w_high = 1.0
 
 H_mat = bmat([[np.array([[1]]), z.T], [z, Z]])   # H = [[1, z^T], [z, Z]]
 I = sum([intensity(z, Z, Phi) for Phi in Phis])
+obj = w_high*sum(neg(I[S_vec == 1] - I_high)) + sum(pos(I[S_vec == 0] - I_low))
 
-obj = sum(square(neg(I[S_vec == 1] - I_high))) + sum(square(pos(I[S_vec == 0] - I_low)))
-
-#obj = I_high - I_low
+# obj = I_high - I_low
 cons = [diag(Z) == 1, H_mat >> 0, I_low >= 0, I_high >= I_low]
 prob = Problem(Minimize(obj), cons)
 prob.solve("MOSEK")
@@ -88,3 +68,12 @@ axarr[0].set_title("Desired Substrate")
 axarr[1].imshow(S_sol, cmap = "Greys", interpolation = "nearest")
 axarr[1].set_title("Solution Substrate")
 plt.show()
+
+# Save images for paper
+f = plt.figure()
+plt.imshow(S, cmap = "Greys", interpolation = "nearest")
+f.savefig("figures/circuit_desired.png", dpi = f.dpi)
+
+f = plt.figure()
+plt.imshow(S_sol, cmap = "Greys", interpolation = "nearest")
+f.savefig("figures/circuit_result.png", dpi = f.dpi)

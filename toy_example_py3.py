@@ -6,16 +6,8 @@ from cvxpy import *
 np.random.seed(1)
 p_num = 5
 # S = np.random.randint(0, 2, size = (5,5))
-S = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+S = np.loadtxt(open("data/smiley_array.txt", "rb"), delimiter=",")
+
 k,l = S.shape
 n = np.prod(S.shape)
 S_vec = S.flatten()   # Flatten into vector

@@ -7,16 +7,8 @@ np.random.seed(1)
 p_num = 5
 r_eps = 1e-4
 # S = np.random.randint(0, 2, size = (5,5))
-S = np.array([[0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 1, 0, 0, 0, 0, 1, 0, 0],
-			  [0, 0, 0, 1, 0, 0, 1, 0, 0, 0],
-			  [0, 0, 0, 0, 1, 1, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-			  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]])
+S = np.loadtxt(open("data/smiley_array.txt", "rb"), delimiter=",")
+
 k,l = S.shape
 n = np.prod(S.shape)
 S_vec = S.flatten()   # Flatten into vector
@@ -65,7 +57,7 @@ H_mat = bmat([[np.array([[1]]), z.T], [z, Z]])   # H = [[1, z^T], [z, Z]]
 I = sum([intensity(z, Z, Phi) for Phi in Phis])
 cons = [diag(Z) == 1, H_mat >> 0, I[S_vec == 1] >= I_high, I[S_vec == 0] <= I_low, I_high >= I_low]
 prob = Problem(Maximize(obj), cons)
-prob.solve("SCS")
+prob.solve("MOSEK")
 print("Status: {}".format(prob.status))
 
 # Real mask must be binary
