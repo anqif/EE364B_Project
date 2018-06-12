@@ -6,18 +6,22 @@ from cvxpy import *
 np.random.seed(1)
 p_num = 5
 # w_high = 0.75   # Circuit array: MSE = 0.07
-w_high = 0.5   # Smiley: MSE = 0.02
+# w_high = 0.5   # Smiley: MSE = 0.02
 # lam = 0.5
-# I_high = 0.75
-# I_low = 0.25
-I_high = Variable()
-I_low = Variable()
 
-save_figs = False
-in_name = "data/smiley_array.txt"
-out_name_d = "figures/smiley_desired.png"
-out_name_r = "figures/smiley_result.png"
-out_name_rc = "figures/smiley_result_cut.png"
+# Rectangle:
+w_high = 1.0   # Small block
+I_high = 1155.5201554916755
+I_low = 955.5201554916755
+
+# I_high = Variable()
+# I_low = Variable()
+
+save_figs = True
+in_name = "data/small_block_array.txt"
+out_name_d = "figures/small_block_desired.png"
+out_name_r = "figures/small_block_result.png"
+out_name_rc = "figures/small_block_result_cut.png"
 # S = np.random.randint(0, 2, size = (5,5))
 S = np.loadtxt(open(in_name, "rb"), delimiter=",")
 
@@ -59,15 +63,15 @@ H_mat = bmat([[np.array([[1]]), z.T], [z, Z]])   # H = [[1, z^T], [z, Z]]
 I = sum([intensity(z, Z, Phi) for Phi in Phis])
 # reg = lam*norm(Z, "nuc")
 obj = w_high*sum(neg(I[S_vec == 1] - I_high)) + sum(pos(I[S_vec == 0] - I_low))
-# cons = [diag(Z) == 1, H_mat >> 0]
-cons = [diag(Z) == 1, H_mat >> 0, I_high >= I_low, I_low >= 0]
+cons = [diag(Z) == 1, H_mat >> 0]
+# cons = [diag(Z) == 1, H_mat >> 0, I_high >= I_low, I_low >= 0]
 prob = Problem(Minimize(obj), cons)
 prob.solve("MOSEK")
 print("Status: {}".format(prob.status))
 # print("Rank of Z: {}".format(np.linalg.matrix_rank(Z.value)))
 print("Eigenvalues of Z: {}".format(np.linalg.eigvals(Z.value)))
-print("I_high: {}".format(I_high.value))
-print("I_low: {}".format(I_low.value))
+# print("I_high: {}".format(I_high.value))
+# print("I_low: {}".format(I_low.value))
 
 # Real mask must be binary
 z_bin = np.sign(z.value)
@@ -80,10 +84,10 @@ I_bin = sum([np.diag(Phi.H.dot(M_bin).dot(Phi)) for Phi in Phis])
 I_sol = np.real(I_bin)
 S_sol = np.reshape(I_sol, (k,l))   # Reshape into 2-D image
 I_sol_cut = np.full(I_sol.shape, 0.5)
-# I_sol_cut[I_sol >= I_high] = 1
-# I_sol_cut[I_sol <= I_low] = 0
-I_sol_cut[I_sol >= I_high.value] = 1
-I_sol_cut[I_sol <= I_low.value] = 0
+I_sol_cut[I_sol >= I_high] = 1
+I_sol_cut[I_sol <= I_low] = 0
+# I_sol_cut[I_sol >= I_high.value] = 1
+# I_sol_cut[I_sol <= I_low.value] = 0
 S_sol_cut = np.reshape(I_sol_cut, (k,l))   # Reshape into 2-D image
 # print("MSE in Substrate: {}".format(np.linalg.norm(S - S_sol)**2/n))
 print("MSE in Thresholded Substrate: {}".format(np.linalg.norm(S - S_sol_cut)**2/n))
@@ -102,12 +106,15 @@ plt.show()
 if save_figs:
 	f = plt.figure()
 	plt.imshow(S, cmap = "Greys", interpolation = "nearest")
+	plt.axis("off")
 	f.savefig(out_name_d, dpi = f.dpi)
 
 	f = plt.figure()
 	plt.imshow(S_sol, cmap = "Greys", interpolation = "nearest")
+	plt.axis("off")
 	f.savefig(out_name_r, dpi = f.dpi)
 	
 	f = plt.figure()
 	plt.imshow(S_sol_cut, cmap = "Greys", interpolation = "nearest")
+	plt.axis("off")
 	f.savefig(out_name_rc, dpi = f.dpi)
